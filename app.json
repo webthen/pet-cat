@@ -1,0 +1,17 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "darkmode": true,
+  "themeLocation": "theme.json",
+  "window": {
+    "backgroundTextStyle": "@bgTxtStyle",
+    "navigationBarBackgroundColor": "@navBgColor",
+    "navigationBarTitleText": "撸猫模拟器",
+    "navigationBarTextStyle": "@navTxtStyle",
+    "backgroundColor": "@bgColor",
+    "pageOrientation": "auto"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

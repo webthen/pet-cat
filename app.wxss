@@ -1,0 +1,20 @@
+page {
+  margin: 0;
+  padding: 0;
+  background-color: #fbf5ec;
+  color: #413024;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  page {
+    background-color: #101722;
+    color: #dfebf3;
+  }
+}
+
+view, button, text, image, slider, canvas {
+  box-sizing: border-box;
+}

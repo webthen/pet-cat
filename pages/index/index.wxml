@@ -1,0 +1,275 @@
+<view class="page {{moonlit ? 'theme-dark' : 'theme-light'}} {{landscape ? 'is-landscape' : ''}} {{softRotated ? 'is-soft-rotated' : ''}}">
+  <view
+    class="viewer {{landscape ? 'landscape' : ''}} {{softRotated ? 'soft-rotated' : ''}}"
+    style="{{softRotated ? 'padding-top:' + statusBarPx + 'px;' : ''}}"
+  >
+    <!-- Portrait custom top bar cleanly aligned left of WeChat menu capsule -->
+    <view
+      wx:if="{{!landscape}}"
+      class="custom-nav"
+      style="padding-top: {{headerTopPx}}px; padding-right: {{headerRightPx}}px;"
+    >
+      <view class="custom-nav-inner" style="height: {{headerHeightPx}}px;">
+        <view class="nav-left">
+          <text class="nav-cat-name">{{currentCatName}}</text>
+          <text class="nav-cat-index">{{selectedIndex}}/{{cats.length}}</text>
+        </view>
+        <view class="nav-actions">
+          <view
+            class="nav-pill {{moonlit ? 'is-active' : ''}}"
+            bindtap="onToggleTheme"
+            aria-label="{{moonlit ? '切换日光模式' : '切换月夜模式'}}"
+          >
+            <image class="nav-pill-icon" src="{{moonlit ? icons.sun : icons.moon}}" mode="aspectFit" />
+            <text class="nav-pill-label">{{moonlit ? '日光' : '月夜'}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="playfield {{closeUp && !landscape ? 'is-closeup' : ''}}">
+      <view id="stage" class="stage {{ready ? 'is-ready' : ''}} {{closeUp && !landscape ? 'is-closeup' : ''}}">
+        <canvas
+          id="scene"
+          type="webgl"
+          class="scene-canvas"
+          disable-scroll="{{true}}"
+          catchtouchstart="onTouchStart"
+          catchtouchmove="onTouchMove"
+          catchtouchend="onTouchEnd"
+          catchtouchcancel="onTouchCancel"
+        ></canvas>
+
+        <view
+          wx:if="{{loadFailed}}"
+          class="retry-btn icon-button {{softRotated ? 'rotated-icon' : ''}}"
+          bindtap="onRetry"
+          aria-label="重新加载"
+        >
+          <image class="svg-icon" src="{{icons.reload}}" mode="aspectFit" />
+        </view>
+      </view>
+
+      <view wx:if="{{!landscape}}" class="stage-caption">
+        <text class="stage-caption-text">{{closeUp ? '特写视野 · 轻抚头背更清晰 · 双击恢复全景' : '轻抚猫头或背部 · 轻拉尾巴会伸展 · 双击可放大'}}</text>
+      </view>
+    </view>
+
+    <!-- Portrait & Native Landscape bottom dock -->
+    <view wx:if="{{!softRotated}}" class="bottom-dock">
+      <view class="breed-strip-wrap">
+        <scroll-view
+          class="breed-strip"
+          scroll-x="{{true}}"
+          enhanced="{{true}}"
+          show-scrollbar="{{false}}"
+          scroll-into-view="breed-{{selected}}"
+          scroll-with-animation="{{true}}"
+        >
+          <view class="breed-list">
+            <view
+              wx:for="{{cats}}"
+              wx:key="id"
+              id="breed-{{item.id}}"
+              class="breed-item {{selected === item.id ? 'is-selected' : ''}}"
+              data-cat="{{item.id}}"
+              bindtap="onChooseCat"
+              aria-label="{{item.name}}"
+            >
+              <view class="coat-wrap">
+                <image class="coat-img" src="{{item.swatch}}" webp="{{true}}" mode="aspectFill" />
+              </view>
+              <view wx:if="{{selected === item.id}}" class="check-badge">
+                <image class="check-img" src="{{icons.check}}" mode="aspectFit" />
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+        <view class="breed-fade-right"></view>
+      </view>
+
+      <view class="tool-bar">
+        <view
+          wx:if="{{landscape}}"
+          class="tool-action {{moonlit ? 'is-active' : ''}}"
+          bindtap="onToggleTheme"
+          aria-label="{{moonlit ? '切换日光模式' : '切换月夜模式'}}"
+        >
+          <view class="tool-circle">
+            <image class="tool-circle-icon" src="{{moonlit ? icons.sun : icons.moon}}" mode="aspectFit" />
+          </view>
+          <text class="tool-label">{{moonlit ? '日光' : '月夜'}}</text>
+        </view>
+
+        <view
+          class="tool-action {{proportionsOpen ? 'is-active' : ''}}"
+          bindtap="onToggleProportions"
+          aria-label="调节猫咪体型"
+        >
+          <view class="tool-circle">
+            <image class="tool-circle-icon" src="{{icons.adjust}}" mode="aspectFit" />
+          </view>
+          <text class="tool-label">体型</text>
+        </view>
+
+        <view
+          class="tool-action {{soundOn ? 'is-active' : ''}}"
+          bindtap="onToggleSound"
+          aria-label="呼噜声"
+        >
+          <view class="tool-circle">
+            <image class="tool-circle-icon" src="{{soundOn ? icons.soundOn : icons.soundOff}}" mode="aspectFit" />
+          </view>
+          <text class="tool-label">{{soundOn ? '呼噜中' : '呼噜声'}}</text>
+        </view>
+
+        <view
+          wx:if="{{!landscape}}"
+          class="tool-action {{closeUp ? 'is-active' : ''}}"
+          bindtap="onToggleCloseUp"
+          aria-label="{{closeUp ? '恢复全景' : '特写放大'}}"
+        >
+          <view class="tool-circle">
+            <image class="tool-circle-icon" src="{{closeUp ? icons.zoomOut : icons.zoomIn}}" mode="aspectFit" />
+          </view>
+          <text class="tool-label">{{closeUp ? '全景' : '特写'}}</text>
+        </view>
+
+        <view
+          class="tool-action tool-action-accent {{landscape ? 'is-active' : ''}}"
+          bindtap="onToggleLandscape"
+          aria-label="{{landscape ? '退出横屏' : '横屏大猫'}}"
+        >
+          <view class="tool-circle">
+            <image class="tool-circle-icon" src="{{landscape ? icons.exit : icons.rotate}}" mode="aspectFit" />
+          </view>
+          <text class="tool-label">{{landscape ? '退出' : '横屏'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Soft-rotated landscape side dock (all buttons sit outside WebGL canvas, rotated 90deg for horizontal viewing) -->
+    <view wx:else class="soft-rotated-bar">
+      <scroll-view
+        class="breed-strip-vert"
+        scroll-y="{{true}}"
+        enhanced="{{true}}"
+        show-scrollbar="{{false}}"
+        scroll-into-view="breed-v-{{selected}}"
+        scroll-with-animation="{{true}}"
+      >
+        <view class="breed-list-vert">
+          <view
+            wx:for="{{cats}}"
+            wx:key="id"
+            id="breed-v-{{item.id}}"
+            class="breed-item {{selected === item.id ? 'is-selected' : ''}} rotated-icon"
+            data-cat="{{item.id}}"
+            bindtap="onChooseCat"
+            aria-label="{{item.name}}"
+          >
+            <view class="coat-wrap">
+              <image class="coat-img" src="{{item.swatch}}" webp="{{true}}" mode="aspectFill" />
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+
+      <view class="soft-tool-group">
+        <view
+          class="soft-tool-btn {{moonlit ? 'is-active' : ''}} rotated-icon"
+          bindtap="onToggleTheme"
+          aria-label="{{moonlit ? '切换日光模式' : '切换月夜模式'}}"
+        >
+          <image class="soft-tool-icon" src="{{moonlit ? icons.sun : icons.moon}}" mode="aspectFit" />
+          <text class="soft-tool-label">{{moonlit ? '日光' : '夜色'}}</text>
+        </view>
+
+        <view
+          class="soft-tool-btn {{proportionsOpen ? 'is-active' : ''}} rotated-icon"
+          bindtap="onToggleProportions"
+          aria-label="调节猫咪体型"
+        >
+          <image class="soft-tool-icon" src="{{icons.adjust}}" mode="aspectFit" />
+          <text class="soft-tool-label">体型</text>
+        </view>
+
+        <view
+          class="soft-tool-btn {{soundOn ? 'is-active' : ''}} rotated-icon"
+          bindtap="onToggleSound"
+          aria-label="呼噜声"
+        >
+          <image class="soft-tool-icon" src="{{soundOn ? icons.soundOn : icons.soundOff}}" mode="aspectFit" />
+          <text class="soft-tool-label">{{soundOn ? '响着' : '声音'}}</text>
+        </view>
+
+        <view
+          class="soft-tool-btn soft-tool-exit rotated-icon"
+          bindtap="onToggleLandscape"
+          aria-label="退出横屏"
+        >
+          <image class="soft-tool-icon" src="{{icons.exit}}" mode="aspectFit" />
+          <text class="soft-tool-label">退出</text>
+        </view>
+      </view>
+    </view>
+
+    <view
+      wx:if="{{proportionsOpen}}"
+      class="panel-backdrop"
+      bindtap="onCloseProportions"
+    ></view>
+
+    <view
+      wx:if="{{proportionsOpen}}"
+      class="proportions-panel {{softRotated ? 'rotated-panel' : ''}}"
+      catchtap="onPanelTap"
+    >
+      <view class="proportion-row">
+        <image class="cat-shape-icon" src="{{icons.catSmall}}" mode="aspectFit" />
+        <view class="slider-wrap">
+          <view class="slider-mid-tick"></view>
+          <slider
+            class="prop-slider"
+            min="0"
+            max="10"
+            step="1"
+            value="{{sizeIndex}}"
+            block-size="18"
+            activeColor="{{moonlit ? '#b4d9fa' : '#925b36'}}"
+            backgroundColor="{{moonlit ? '#526276' : '#d9cfc1'}}"
+            block-color="{{moonlit ? '#dfebf3' : '#925b36'}}"
+            bindchanging="onSizeChanging"
+            bindchange="onSizeChange"
+          />
+        </view>
+        <image class="cat-shape-icon" src="{{icons.catLarge}}" mode="aspectFit" />
+      </view>
+
+      <view class="proportion-row">
+        <image class="cat-shape-icon" src="{{icons.catThin}}" mode="aspectFit" />
+        <view class="slider-wrap">
+          <view class="slider-mid-tick"></view>
+          <slider
+            class="prop-slider"
+            min="0"
+            max="10"
+            step="1"
+            value="{{widthIndex}}"
+            block-size="18"
+            activeColor="{{moonlit ? '#b4d9fa' : '#925b36'}}"
+            backgroundColor="{{moonlit ? '#526276' : '#d9cfc1'}}"
+            block-color="{{moonlit ? '#dfebf3' : '#925b36'}}"
+            bindchanging="onWidthChanging"
+            bindchange="onWidthChange"
+          />
+        </view>
+        <image class="cat-shape-icon" src="{{icons.catWide}}" mode="aspectFit" />
+      </view>
+    </view>
+
+    <view wx:if="{{showHint && !landscape}}" class="hint-toast">
+      <text class="hint-toast-text">左滑换猫 · 双击放大特写 · 点横屏变 3 倍大猫</text>
+    </view>
+  </view>
+</view>
